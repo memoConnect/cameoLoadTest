@@ -1,4 +1,4 @@
-import akka.actor.Actor
+import akka.actor.{ActorRef, Actor}
 
 /**
  * User: Björn Reimer
@@ -6,7 +6,7 @@ import akka.actor.Actor
  * Time: 13:11
  */
 
-case class StartConversation(userTokens: Seq[TokenCreated], numberOrMessages: Int)
+case class StartConversation(replyTo: ActorRef, userTokens: Seq[TokenCreated], numberOrMessages: Int)
 case class NextMessage(tokenIndex: Int)
 
 case class ConversationCreated(cid: String)
@@ -18,16 +18,17 @@ class ConversationActor extends Actor {
   var userTokens: Seq[TokenCreated] = Seq()
   var cid = ""
   var currentUser = 0
+  var reply : ActorRef = self
 
   def receive = {
-    case StartConversation(tokens, number) =>
+    case StartConversation(replyTo, tokens, number) =>
       userTokens = tokens
       messages = Util.generateConversation(number)
+      reply = replyTo
 
       Main.requestRouter.get ! CreateConversationAndAddRecipients(self, userTokens.head.token, "subject", userTokens.tail.map(_.user.iid))
 
     case ConversationCreated(newCid) =>
-      Logger.info("conversation created")
       cid = newCid
       Main.requestRouter.get ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
 
@@ -40,14 +41,10 @@ class ConversationActor extends Actor {
       messages = messages.tail
 
       messages.length match {
-        case 0 => Logger.info("conversation finished")
+        case 0 =>
+          reply ! ConversationFinished()
         case _ => Main.requestRouter.get ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
       }
-
-
-
-
-
 
   }
 

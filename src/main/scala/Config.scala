@@ -8,23 +8,23 @@ case class ExternalContact(displayName: String, email: Option[String], phoneNumb
 
 object Config {
 
-  var basePath = "http://localhost:9000/api/v1"
+  var basePath = "https://dev.cameo.io/api/v1"
 
-  var numberOfTestBatches = 6
+  var numberOfTestBatches = 1
 
-  var concurrentTestBatches = 3
+  var concurrentTestBatches = 1        //1  Time: 54s, 5150Request: 60s(one);32s(two);34(four)
 
   var defaultPassword = "password"
 
-  var requestTimeout = 1000
+  var requestTimeout = 40000
 
-  var numberOfConcurrentRequests = 20
+  var numberOfConcurrentRequests = 50  //30,50
 
   var numberOfUsers = 5
 
-  var numberOfConversations = 1
+  var numberOfConversations = 100      //40,40
 
-  var numberOfMessagesPerConversation = 300
+  var numberOfMessagesPerConversation = 200
 
   var externalContacts: Seq[ExternalContact] = Seq(
     ExternalContact("Björn", Some("loadTest@bjrm.de"), None),

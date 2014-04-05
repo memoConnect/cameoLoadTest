@@ -12,5 +12,6 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq (
   "com.typesafe.akka" %% "akka-actor" % "2.3.1",
   "com.typesafe.play" %% "play-json" % "2.2.2",
-  "com.typesafe.play" %% "play" % "2.2.2"
+  "com.typesafe.play" %% "play" % "2.2.2",
+  "net.databinder.dispatch" %% "dispatch-core" % "0.11.0"
 )

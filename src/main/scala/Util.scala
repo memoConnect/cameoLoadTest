@@ -3,6 +3,7 @@ import play.api.libs.json.{JsArray, Json, JsObject}
 import play.api.libs.ws.WS
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
+import dispatch._
 
 /**
  * User: Björn Reimer
@@ -28,8 +29,8 @@ object Util {
 
   def postRequest(path: String, body: JsObject): Future[Option[JsObject]] = {
     try {
-
-      Logger.info(path + " : " + body)
+      countRequest()
+//      Logger.info(path + " : " + body)
       WS.url(Config.basePath + path).withRequestTimeout(Config.requestTimeout).post(body).map {
         res =>
           res.status match {
@@ -39,15 +40,17 @@ object Util {
               None
           }
       }
+
     } catch {
-      case e: Exception => Logger.error("exeption: e.toString")
+      case e: Exception => Logger.error("exeption: " + e.toString)
         Future(None)
     }
   }
 
   def postRequest(path: String, body: JsObject, token: String): Future[Option[JsObject]] = {
     try {
-      Logger.info(path + " : " + body)
+      countRequest()
+//      Logger.info(path + " : " + body)
       WS.url(Config.basePath + path)
         .withHeaders(("Authorization", token))
         .withRequestTimeout(Config.requestTimeout)
@@ -68,31 +71,45 @@ object Util {
   }
 
   def getRequest(path: String, token: String): Future[Option[JsObject]] = {
-    Logger.info(path)
-    WS.url(Config.basePath + path)
-      .withHeaders(("Authorization", token))
-      .withRequestTimeout(Config.requestTimeout)
-      .get().map {
-      res =>
-        res.status match {
-          case x if x < 300 => parseBody(res.body)
-          case _ =>
-            Logger.error(path + res.body)
-            None
-        }
+    try {
+      countRequest()
+//      Logger.info(path)
+      WS.url(Config.basePath + path)
+        .withHeaders(("Authorization", token))
+        .withRequestTimeout(Config.requestTimeout)
+        .get().map {
+        res =>
+          res.status match {
+            case x if x < 300 => parseBody(res.body)
+            case _ =>
+              Logger.error(path + res.body)
+              None
+          }
+      }
+
+    } catch {
+      case e: Exception => Logger.error("exeption: e.toString")
+        Future(None)
     }
   }
 
   def getRequestWithAuth(path: String, user: String, pass: String): Future[Option[JsObject]] = {
+    try {
+      countRequest()
 
-    WS.url(Config.basePath + path).withRequestTimeout(Config.requestTimeout).withAuth(user, pass, AuthScheme.BASIC).get.map {
-      res =>
-        res.status match {
-          case x if x < 300 => parseBody(res.body)
-          case _ =>
-            Logger.error(path + " : " + res.body)
-            None
-        }
+      WS.url(Config.basePath + path).withRequestTimeout(Config.requestTimeout).withAuth(user, pass, AuthScheme.BASIC).get.map {
+        res =>
+          res.status match {
+            case x if x < 300 => parseBody(res.body)
+            case _ =>
+              Logger.error(path + " : " + res.body)
+              None
+          }
+      }
+
+    } catch {
+      case e: Exception => Logger.error("exeption: e.toString")
+        Future(None)
     }
   }
 
@@ -125,6 +142,10 @@ object Util {
     }
 
     returnMessages(numberOfMessages)
+  }
+
+  def countRequest() {
+    Main.requestCounter.get ! CountRequest()
   }
 
 }
