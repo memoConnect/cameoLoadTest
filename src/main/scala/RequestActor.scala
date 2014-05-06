@@ -25,6 +25,8 @@ case class CreateConversationAndAddRecipients(replyTo: ActorRef, token: String, 
 
 case class SendMessage(replyTo: ActorRef, token: String, cid: String, text: String)
 
+case class UpdateIdentity(replyTo: ActorRef, token: String, displayName: String)
+
 class RequestActor extends Actor {
 
   def receive = {
@@ -57,6 +59,10 @@ class RequestActor extends Actor {
           val token = (js \ "token").as[String]
           reply ! TokenCreated(user, token)
       }
+
+    case UpdateIdentity(reply, token, displayName) =>
+      val json = Json.obj("displayName" -> displayName)
+      Util.putRequest("/identity", json, token)
 
     case AddExternalContact(token, displayName, email, phoneNumber) =>
       val json = Json.obj("displayName" -> displayName) ++
@@ -94,7 +100,7 @@ class RequestActor extends Actor {
       }
 
     case SendMessage(reply, token, cid, text) =>
-      val json = Json.obj("body" -> text)
+      val json = Json.obj("plain" -> Json.obj("text" -> text))
       Util.postRequest("/conversation/" + cid + "/message", json, token).map {
         case None => Logger.error("none7")
         case Some(js) => reply ! MessageSend()

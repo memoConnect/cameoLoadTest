@@ -15,3 +15,5 @@ libraryDependencies ++= Seq (
   "com.typesafe.play" %% "play" % "2.2.2",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0"
 )
+
+//com.typesafe.sbt.SbtAtmos.atmosSettings

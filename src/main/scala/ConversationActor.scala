@@ -15,6 +15,7 @@ case class MessageSend()
 class ConversationActor extends Actor {
 
   var messages: Seq[String] = Seq()
+  var subject: String = ""
   var userTokens: Seq[TokenCreated] = Seq()
   var cid = ""
   var currentUser = 0
@@ -23,10 +24,12 @@ class ConversationActor extends Actor {
   def receive = {
     case StartConversation(replyTo, tokens, number) =>
       userTokens = tokens
-      messages = Util.generateConversation(number)
+      val generated = Util.generateConversation(number)
+      subject = generated._1
+      messages = generated._2
       reply = replyTo
 
-      Main.requestRouter.get ! CreateConversationAndAddRecipients(self, userTokens.head.token, "subject", userTokens.tail.map(_.user.iid))
+      Main.requestRouter.get ! CreateConversationAndAddRecipients(self, userTokens.head.token, subject, userTokens.tail.map(_.user.iid))
 
     case ConversationCreated(newCid) =>
       cid = newCid

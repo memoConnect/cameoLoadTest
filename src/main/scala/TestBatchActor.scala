@@ -1,6 +1,4 @@
 import akka.actor.{PoisonPill, ActorRef, Props, Actor}
-import scala.concurrent.Future
-import scala.concurrent.duration._
 
 /**
  * User: Björn Reimer
@@ -19,7 +17,7 @@ case class UserCreated(login: String, iid: String)
 
 case class TokenCreated(user: UserCreated, token: String)
 
-case class FriendRequestSuccess(cameoId: String)
+case class FriendRequestSuccess(iid: String)
 
 case class FriendsAccepted()
 
@@ -59,6 +57,16 @@ class TestBatchActor extends Actor {
       Logger.info("token created: " + tokenCreated.token)
       tokens :+= tokenCreated
 
+      // update display name
+      val first: String = tokenCreated.user.login.split("_")(0)
+      val second: String = tokenCreated.user.login.split("_")(1)
+
+      def capitalize(s: String) = s(0).toUpper + s.substring(1, s.length).toLowerCase
+      val displayName = capitalize(first) + " " + capitalize(second)
+      Main.requestRouter.get ! UpdateIdentity(self, tokenCreated.token, displayName)
+      Logger.info("display Name: " + displayName)
+
+      // add external contacts
       Config.externalContacts.foreach {
         ec =>
           Main.requestRouter.get ! AddExternalContact(tokenCreated.token, ec.displayName, ec.email, ec.phoneNumber)
@@ -85,7 +93,7 @@ class TestBatchActor extends Actor {
     case FriendsAccepted() =>
       friends += 1
       if (friends == numberOfUsers - 1) {
-        Logger.info("allFriends!")
+        //        Logger.info("allFriends!")
         self ! CreateConversations
       }
 
@@ -106,11 +114,12 @@ class TestBatchActor extends Actor {
         Main.requestCounter.get ! GetStats(self)
       }
 
-    case RequestStats(count, average) =>
-      val total = ( endTime - startTime) / 1000
-//      val secs = total % 60
-//      val minutes = total / 60
-      val msg = "Duration: " + total + " seconds, " + average + " Requests/second"
+    case RequestStats(count, average, durations) =>
+      val total = (endTime - startTime) / 1000
+      //      val secs = total % 60
+      //      val minutes = total / 60
+      val msg = "Duration: " + total + " seconds, " + average + " Requests/second\n" +
+        durations.map(_.toString).mkString("\n")
       Logger.info("Batch finished: " + msg)
       reply ! "ok"
       self ! PoisonPill

@@ -1,9 +1,8 @@
 import com.ning.http.client.Realm.AuthScheme
 import play.api.libs.json.{JsArray, Json, JsObject}
-import play.api.libs.ws.WS
+import play.api.libs.ws.{Response, WS}
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import dispatch._
 
 /**
  * User: Björn Reimer
@@ -28,85 +27,73 @@ object Util {
 
 
   def postRequest(path: String, body: JsObject): Future[Option[JsObject]] = {
-    try {
-      countRequest()
-//      Logger.info(path + " : " + body)
-      WS.url(Config.basePath + path).withRequestTimeout(Config.requestTimeout).post(body).map {
-        res =>
-          res.status match {
-            case x if x < 300 => parseBody(res.body)
-            case _ =>
-              Logger.error(path + " : " + body + " : " + res.body)
-              None
-          }
-      }
+    def req =  WS
+      .url(Config.basePath + path)
+      .withRequestTimeout(Config.requestTimeout)
+      .post(body)
 
-    } catch {
-      case e: Exception => Logger.error("exeption: " + e.toString)
-        Future(None)
+      executeRequest(path, req)
+
     }
-  }
 
   def postRequest(path: String, body: JsObject, token: String): Future[Option[JsObject]] = {
-    try {
-      countRequest()
-//      Logger.info(path + " : " + body)
-      WS.url(Config.basePath + path)
-        .withHeaders(("Authorization", token))
-        .withRequestTimeout(Config.requestTimeout)
-        .post(body).map {
-        res =>
-          res.status match {
-            case x if x < 300 => parseBody(res.body)
-            case _ =>
-              Logger.error(path + " : " + body + " : " + res.body)
-              None
-          }
-      }
+    def req = WS
+      .url(Config.basePath + path)
+      .withHeaders(("Authorization", token))
+      .withRequestTimeout(Config.requestTimeout)
+      .post(body)
 
-    } catch {
-      case e: Exception => Logger.error("exeption: e.toString")
-        Future(None)
-    }
+    executeRequest(path, req)
   }
 
   def getRequest(path: String, token: String): Future[Option[JsObject]] = {
-    try {
-      countRequest()
-//      Logger.info(path)
-      WS.url(Config.basePath + path)
-        .withHeaders(("Authorization", token))
-        .withRequestTimeout(Config.requestTimeout)
-        .get().map {
-        res =>
-          res.status match {
-            case x if x < 300 => parseBody(res.body)
-            case _ =>
-              Logger.error(path + res.body)
-              None
-          }
-      }
 
-    } catch {
-      case e: Exception => Logger.error("exeption: e.toString")
-        Future(None)
-    }
+    def req = WS
+      .url(Config.basePath + path)
+      .withHeaders(("Authorization", token))
+      .withRequestTimeout(Config.requestTimeout)
+      .get()
+
+    executeRequest(path, req)
   }
 
   def getRequestWithAuth(path: String, user: String, pass: String): Future[Option[JsObject]] = {
-    try {
-      countRequest()
 
-      WS.url(Config.basePath + path).withRequestTimeout(Config.requestTimeout).withAuth(user, pass, AuthScheme.BASIC).get.map {
+    def req = WS
+      .url(Config.basePath + path)
+      .withRequestTimeout(Config.requestTimeout)
+      .withAuth(user, pass, AuthScheme.BASIC)
+      .get()
+
+    executeRequest(path, req)
+  }
+
+  def putRequest(path: String, body: JsObject, token: String): Future[Option[JsObject]] = {
+    def req = WS
+      .url(Config.basePath + path)
+      .withHeaders(("Authorization", token))
+      .withRequestTimeout(Config.requestTimeout)
+      .put(body)
+
+    executeRequest(path, req)
+  }
+
+  def executeRequest(desc: String, request: => Future[Response]): Future[Option[JsObject]] = {
+
+    val start = System.currentTimeMillis()
+    try {
+      request.map {
         res =>
           res.status match {
-            case x if x < 300 => parseBody(res.body)
+            case x if x < 300 =>
+              val duration = System.currentTimeMillis() - start
+              Main.requestCounter.get ! CountRequest(desc ,duration)
+              parseBody(res.body)
             case _ =>
-              Logger.error(path + " : " + res.body)
+              Logger.error(desc + " : " + res.body)
               None
           }
       }
-
     } catch {
       case e: Exception => Logger.error("exeption: e.toString")
         Future(None)
@@ -127,8 +114,20 @@ object Util {
     }
   }
 
-  def generateConversation(numberOfMessages: Int): Seq[String] = {
-    val text = Config.conversationText.replace("\n", "").replace(". ", ".").replace(", ", ",")
+  def generateConversation(numberOfMessages: Int): (String, Seq[String]) = {
+
+    val length: Int = (random.nextGaussian() * (numberOfMessages / 4) + numberOfMessages).toInt
+
+    val posLength = length match {
+      case x if x > 0 => x
+      case 0 => 1
+      case x => x * -1
+    }
+
+    val textNum = random.nextInt(Config.conversationTexts.length)
+    val subject = Config.conversationTexts(textNum)._1
+
+    val text = Config.conversationTexts(textNum)._2.replace("\n", "").replace(". ", ".").replace(", ", ",")
 
     val messages = text.split(Array(',', '.')).toSeq
     val size = messages.length
@@ -141,11 +140,10 @@ object Util {
       }
     }
 
-    returnMessages(numberOfMessages)
+    (subject,returnMessages(posLength))
   }
 
   def countRequest() {
-    Main.requestCounter.get ! CountRequest()
   }
 
 }
