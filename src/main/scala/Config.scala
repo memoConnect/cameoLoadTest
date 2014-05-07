@@ -8,29 +8,37 @@ case class ExternalContact(displayName: String, email: Option[String], phoneNumb
 
 object Config {
 
-//  var basePath = "https://dev.cameo.io/api/v1"
-  var basePath = "https://stage.cameo.io/api/v1"
 
-  // bundle of tasks that will be repeated
-  var numberOfTestBatches = 1
+  var basePath = "https://dev.cameo.io/api/v1"
+//  var basePath = "https://stage.cameo.io/api/v1"
+
+  // number of successive test batches per thread, zero == infinite
+  var testBatchRepetitions = 1
 
   // number of parallel threads
-  var concurrentTestBatches = 1        //1  Time: 54s, 5150Request: 60s(one);32s(two);34(four)
+  var concurrentTestBatches = 1
+
+  // ramp up period until total number of concurrent batches is reached [seconds]
+  var rampUpTime = 30
 
   var defaultPassword = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
 
   var requestTimeout = 40000
 
+  var numberOfConcurrentRequests = 50
 
-  var numberOfConcurrentRequests = 50  //30,50
+  var logInterval = 1000
 
-  // Batch config
+  // Test Batch config
   // number of users that will be created
   var numberOfUsers = 5
-
-  var numberOfConversations = 50      //40,40
-
-  var numberOfMessagesPerConversation = 200
+  var tokenPerUser = 10
+  var getContactsPerUser = 100
+  var getConversationsPerUser = 200
+  var getIdentityPerUser = 100
+  var numberOfConversations = 2
+  var numberOfMessagesPerConversation = 500
+  var getConversationPerMessage = 2
 
 
   var externalContacts: Seq[ExternalContact] = Seq(

@@ -1,4 +1,5 @@
 import akka.actor.{ActorRef, Actor}
+import scala.util.Random
 
 /**
  * User: Björn Reimer
@@ -6,7 +7,7 @@ import akka.actor.{ActorRef, Actor}
  * Time: 13:11
  */
 
-case class StartConversation(replyTo: ActorRef, userTokens: Seq[TokenCreated], numberOrMessages: Int)
+case class StartConversation(replyTo: ActorRef, requestRouter: ActorRef, userTokens: Seq[TokenCreated], numberOrMessages: Int)
 case class NextMessage(tokenIndex: Int)
 
 case class ConversationCreated(cid: String)
@@ -20,20 +21,22 @@ class ConversationActor extends Actor {
   var cid = ""
   var currentUser = 0
   var reply : ActorRef = self
+  var requestRouter: ActorRef = null
 
   def receive = {
-    case StartConversation(replyTo, tokens, number) =>
+    case StartConversation(replyTo, newRequestRouter, tokens, number) =>
       userTokens = tokens
+      requestRouter = newRequestRouter
       val generated = Util.generateConversation(number)
       subject = generated._1
       messages = generated._2
       reply = replyTo
 
-      Main.requestRouter.get ! CreateConversationAndAddRecipients(self, userTokens.head.token, subject, userTokens.tail.map(_.user.iid))
+      requestRouter ! CreateConversationAndAddRecipients(self, userTokens.head.token, subject, userTokens.tail.map(_.user.iid))
 
     case ConversationCreated(newCid) =>
       cid = newCid
-      Main.requestRouter.get ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
+      requestRouter ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
 
     case MessageSend() =>
       currentUser match {
@@ -46,7 +49,11 @@ class ConversationActor extends Actor {
       messages.length match {
         case 0 =>
           reply ! ConversationFinished()
-        case _ => Main.requestRouter.get ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
+        case _ => requestRouter ! SendMessage(self, userTokens(currentUser).token,cid, messages.head)
+      }
+
+      (1 to Config.getConversationPerMessage) foreach { i =>
+         requestRouter ! GetConversation(self, Random.shuffle(userTokens).head.token, cid)
       }
 
   }

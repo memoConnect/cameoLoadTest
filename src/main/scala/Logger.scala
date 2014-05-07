@@ -13,4 +13,9 @@ object Logger {
     println("Info: " + msg)
   }
 
+  def stats(msg: String) = {
+    println("===============================================")
+    println(msg)
+  }
+
 }
