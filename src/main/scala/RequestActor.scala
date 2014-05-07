@@ -120,7 +120,7 @@ class RequestActor extends Actor {
       }
 
     case GetConversation(reply, token, cid) =>
-      getRequest("/conversation/" + cid , token)
+      getRequest("/conversation/" + cid + "?limit=25", token)
   }
 
   def parseBody(body: String): Option[JsObject] = {

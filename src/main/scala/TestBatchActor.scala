@@ -119,10 +119,11 @@ class TestBatchActor extends Actor {
 
     case ConversationFinished() =>
       finishedConversations += 1
-      //Logger.info("conversation finished. Total: " + finishedConversations )
+//      Logger.info("conversation finished. Total: " + finishedConversations )
 
       if (finishedConversations == Config.numberOfConversations) {
         endTime = System.currentTimeMillis()
+        self ! BatchFinished()
       }
 
     case BatchFinished() =>

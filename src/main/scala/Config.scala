@@ -16,16 +16,16 @@ object Config {
   var testBatchRepetitions = 0
 
   // number of parallel threads
-  var concurrentTestBatches = 5
+  var concurrentTestBatches = 20
 
   // ramp up period until total number of concurrent batches is reached [seconds]
-  var rampUpTime = 30
+  var rampUpTime = 60
 
   var defaultPassword = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
 
   var requestTimeout = 40000
 
-  var numberOfConcurrentRequests = 50
+  var numberOfConcurrentRequests = 70
 
   var logInterval = 1000
 

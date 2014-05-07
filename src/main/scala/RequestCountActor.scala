@@ -70,7 +70,7 @@ class RequestCountActor extends Actor {
         val msg = "Request/sec: " + rate + " (avg: " + average + ")\n"
 //        Logger.info("Request/sec: " + rate + " (avg: " + average + ")")
         Logger.stats(msg + durations.map(_.toString).mkString("", "\n", ""))
-        //durations = Seq()
+        durations = Seq()
 
         startTime = System.currentTimeMillis()
       }
