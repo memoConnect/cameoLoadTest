@@ -11,21 +11,27 @@ object Config {
 //  var basePath = "https://dev.cameo.io/api/v1"
   var basePath = "https://stage.cameo.io/api/v1"
 
+  // bundle of tasks that will be repeated
   var numberOfTestBatches = 1
 
+  // number of parallel threads
   var concurrentTestBatches = 1        //1  Time: 54s, 5150Request: 60s(one);32s(two);34(four)
 
   var defaultPassword = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
 
   var requestTimeout = 40000
 
+
   var numberOfConcurrentRequests = 50  //30,50
 
+  // Batch config
+  // number of users that will be created
   var numberOfUsers = 5
 
   var numberOfConversations = 50      //40,40
 
   var numberOfMessagesPerConversation = 200
+
 
   var externalContacts: Seq[ExternalContact] = Seq(
     ExternalContact("Björn", Some("loadTest@bjrm.de"), None),
