@@ -13,10 +13,10 @@ object Config {
 //  var basePath = "https://stage.cameo.io/api/v1"
 
   // number of successive test batches per thread, zero == infinite
-  var testBatchRepetitions = 1
+  var testBatchRepetitions = 0
 
   // number of parallel threads
-  var concurrentTestBatches = 1
+  var concurrentTestBatches = 5
 
   // ramp up period until total number of concurrent batches is reached [seconds]
   var rampUpTime = 30
