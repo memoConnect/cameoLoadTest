@@ -9,7 +9,7 @@ case class ExternalContact(displayName: String, email: Option[String], phoneNumb
 object Config {
 
 
-  var basePath = "https://dev.cameo.io/api/v1"
+  var basePath = "https://dev.cameo.io/a/v1"
 //  var basePath = "https://stage.cameo.io/api/v1"
 
   // number of successive test batches per thread, zero == infinite
