@@ -42,6 +42,7 @@ class TestBatchActor extends Actor {
   def receive() = {
 
     case Start(repetitions, newRequestRouter) =>
+      Logger.info("###########> TestBatch started <###########")
       startTime = System.currentTimeMillis()
       requestRouter = newRequestRouter
       repetitionsMax = repetitions
@@ -138,16 +139,16 @@ class TestBatchActor extends Actor {
       }
 
     case BatchFinished() =>
+      Logger.info("###########> TestBatch finished <###########")
+
       repetitionsMax match {
         case 0 =>
           // repeat forever
           self ! Start(0, requestRouter)
         case i if i < repetitionsMax =>
           self ! Start(0, requestRouter)
-          Logger.info("Starting testBatch repetition: " + repetitionCount)
         case _ =>
           // we are finished, end this actor
-          Logger.info("TestBatch finished")
           if(Config.deleteCreatedUsers) {
               Util.loginNames.map {
                 name =>

@@ -33,7 +33,7 @@ object Main extends App {
         val sleepTime = (Config.rampUpTime / Config.concurrentTestBatches) * 1000 * (i -1)
         Thread.sleep(sleepTime)
 
-        Logger.info("Starting Test Batch Number " + i)
+//        Logger.info("Starting Test Batch Number " + i)
 
         val testBatchActor = system.actorOf(actorProperties, name = "testBatch_" + i)
         testBatchActor ! Start(Config.testBatchRepetitions, requestRouter)

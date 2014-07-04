@@ -17,7 +17,7 @@ object Config {
   var testBatchRepetitions = 0
 
   // number of parallel threads
-  var concurrentTestBatches = 10
+  var concurrentTestBatches = 20
 
   // ramp up period until total number of concurrent batches is reached [seconds]
   var rampUpTime = 60
