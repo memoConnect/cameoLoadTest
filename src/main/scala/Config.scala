@@ -8,10 +8,9 @@ case class ExternalContact(displayName: String, email: Option[String], phoneNumb
 
 object Config {
 
-
   var basePath = "https://dev.cameo.io/a/v1"
-//  var basePath = "https://stage.cameo.io/a/v1"
-//  var basePath = "https://cameonet.de/a/v1"
+  //  var basePath = "https://stage.cameo.io/a/v1"
+  //  var basePath = "https://cameonet.de/a/v1"
 
   // number of successive test batches per thread, zero == infinite
   var testBatchRepetitions = 0
@@ -36,18 +35,18 @@ object Config {
   // Test Batch config
   // number of users that will be created
   var numberOfUsers = 5
-  var tokenPerUser = 10
-//  var getContactsPerUser = 0
-//  var getConversationsPerUser = 0
-//  var getIdentityPerUser = 0
-//  var getConversationPerMessage = 0
-  var getContactsPerUser = 100
-  var getConversationsPerUser = 200
-  var getIdentityPerUser = 100
-  var getConversationPerMessage = 2
+  var getContactsPerUser = 0
+  var getConversationsPerUser = 0
+  var getIdentityPerUser = 0
+  var getConversationPerMessage = 0
+  var tokenPerUser = 1
+  //var tokenPerUser = 10
+  //  var getContactsPerUser = 100
+  //  var getConversationsPerUser = 200
+  //  var getIdentityPerUser = 100
+  //  var getConversationPerMessage = 2
   var numberOfConversations = 5
   var numberOfMessagesPerConversation = 500
-
 
   var externalContacts: Seq[ExternalContact] = Seq(
     ExternalContact("Björn", Some("loadTest@bjrm.de"), None),
