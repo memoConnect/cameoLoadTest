@@ -212,16 +212,19 @@ class RequestActor extends Actor {
 
     val start = System.currentTimeMillis()
     try {
-      request.map {
+      request.flatMap {
         res =>
           res.status match {
             case x if x < 300 =>
               val duration = System.currentTimeMillis() - start
               requestCounter ! CountRequest(method, path, duration)
-              parseBody(res.body)
+              Future(parseBody(res.body))
+            case x if x == 401 =>
+              Logger.info("unauthorized, repeating request")
+              executeRequest(method, path, request)
             case _ =>
               Logger.error(method + " " + path + " : " + res.body)
-              None
+              Future(None)
           }
       }
     } catch {
