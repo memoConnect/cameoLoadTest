@@ -25,6 +25,7 @@ class ConversationActor extends Actor {
 
   def receive = {
     case StartConversation(replyTo, newRequestRouter, tokens, number) =>
+
       userTokens = tokens
       requestRouter = newRequestRouter
       val generated = Util.generateConversation(number)
@@ -45,6 +46,8 @@ class ConversationActor extends Actor {
       }
 
       messages = messages.tail
+
+//      Logger.info("Messages left: " + messages.length)
 
       messages.length match {
         case 0 =>

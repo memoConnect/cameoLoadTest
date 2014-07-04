@@ -46,6 +46,11 @@ class TestBatchActor extends Actor {
       requestRouter = newRequestRouter
       repetitionsMax = repetitions
       repetitionCount += 1
+      users = Seq()
+      tokens =Seq()
+      friends = 0
+      finishedConversations = 0
+
       (1 to numberOfUsers) foreach {
         i => requestRouter ! CreateUser(self)
       }
@@ -61,6 +66,7 @@ class TestBatchActor extends Actor {
       }
 
     case tokenCreated: TokenCreated =>
+
       tokens :+= tokenCreated
 
       // update display name
@@ -77,7 +83,10 @@ class TestBatchActor extends Actor {
           requestRouter ! AddExternalContact(tokenCreated.token, ec.displayName, ec.email, ec.phoneNumber)
       }
 
+//      Logger.info("token created. Tokens: " + tokens + " #"+ numberOfUsers)
+
       if (tokens.length == numberOfUsers) {
+//        Logger.info("sending message to make everyone friends")
         self ! MakeEveryoneFriends()
       }
 
@@ -90,6 +99,7 @@ class TestBatchActor extends Actor {
       getConversationsActor ! StartGetting("/conversations", tokenCreated.token, Config.getConversationsPerUser, requestRouter)
 
     case MakeEveryoneFriends() =>
+//      Logger.info("making everyone frieds!")
       // first user sends friend request to all others
       tokens.tail.map {
         token =>
@@ -97,6 +107,7 @@ class TestBatchActor extends Actor {
       }
 
     case FriendRequestSuccess(iid) =>
+//      Logger.info("friend request successfull")
       // accept friend request
       tokens.find(_.user.iid.equals(iid)).map {
         token =>
@@ -106,14 +117,14 @@ class TestBatchActor extends Actor {
     case FriendsAccepted() =>
       friends += 1
       if (friends == numberOfUsers - 1) {
-        //        Logger.info("allFriends!")
+//                Logger.info("allFriends!")
         self ! CreateConversations
       }
 
     case CreateConversations =>
       (1 to Config.numberOfConversations).foreach {
         i =>
-          val cActor = context.actorOf(Props[ConversationActor], name = "conversation_" + i)
+          val cActor = context.actorOf(Props[ConversationActor])
           cActor ! StartConversation(self, requestRouter,tokens, Config.numberOfMessagesPerConversation)
       }
 
@@ -137,8 +148,16 @@ class TestBatchActor extends Actor {
         case _ =>
           // we are finished, end this actor
           Logger.info("TestBatch finished")
+          if(Config.deleteCreatedUsers) {
+              Util.loginNames.map {
+                name =>
+                  val id = name.split('_')(1)
+                  requestRouter ! DeleteTestUser(id)
+              }
+            }
           self ! PoisonPill
-      }
+          }
+
 
 
 

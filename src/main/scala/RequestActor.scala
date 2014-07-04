@@ -24,6 +24,7 @@ case class SendMessage(replyTo: ActorRef, token: String, cid: String, text: Stri
 case class GetConversation(replyTo: ActorRef, token: String, cid: String)
 case class UpdateIdentity(replyTo: ActorRef, token: String, displayName: String)
 case class GetRequest(replyTo: ActorRef,path: String, token: String)
+case class DeleteTestUser(testUserId: String)
 
 
 class RequestActor extends Actor {
@@ -42,6 +43,7 @@ class RequestActor extends Actor {
 
       futureLogin.map {
         case (login, secret) =>
+//          Logger.info("Login: " + login)
           val json = Json.obj(
             "loginName" -> login,
             "password" -> Config.defaultPassword,
@@ -99,6 +101,7 @@ class RequestActor extends Actor {
 
 
     case CreateConversationAndAddRecipients(reply, token, subject, recipients) =>
+
       val json = Json.obj("subject" -> subject)
       postRequest("/conversation", json, token).map {
         case None => Logger.error("none6")
@@ -121,6 +124,10 @@ class RequestActor extends Actor {
 
     case GetConversation(reply, token, cid) =>
       getRequest("/conversation/" + cid + "?limit=25", token)
+
+    case DeleteTestUser(id) =>
+      Logger.info("Deleting testUser: " + id)
+      deleteRequest("/testUser/" + id)
   }
 
   def parseBody(body: String): Option[JsObject] = {
@@ -181,6 +188,16 @@ class RequestActor extends Actor {
     executeRequest("GET", path, req)
   }
 
+  def deleteRequest(path: String): Future[Option[JsObject]] = {
+
+    def req = WS
+      .url(Config.basePath + path)
+      .withRequestTimeout(Config.requestTimeout)
+      .get()
+
+    executeRequest("DELETE", path, req)
+  }
+
   def putRequest(path: String, body: JsObject, token: String): Future[Option[JsObject]] = {
     def req = WS
       .url(Config.basePath + path)
@@ -215,18 +232,25 @@ class RequestActor extends Actor {
 
   def getValidUsername(tries: Int, loginName: String): Future[(String, String)] = {
     if (tries > 0) {
-      postRequest("/account/check", Json.obj("loginName" -> loginName)).flatMap {
+
+      // make sure the loginname is shorter than 20 chars
+      val validLoginName = loginName match {
+        case l if l.length > 20 => l.substring(l.length - 20)
+        case _ => loginName
+      }
+
+      postRequest("/account/check", Json.obj("loginName" -> validLoginName)).flatMap {
         case None => Logger.error("none8"); Future(("", ""))
         case Some(js) =>
           (js \ "reservationSecret").asOpt[String] match {
-            case Some(s) => Future((loginName, s))
+            case Some(s) => Future((validLoginName, s))
             case None =>
               (js \ "alternative").asOpt[String] match {
                 case None => Logger.error("none10"); Future(("", ""))
                 case Some(alt) =>
                   // use alternative
                   postRequest("/account/check", Json.obj("loginName" -> alt)).flatMap {
-                    case None => Logger.error("none11"); Future(("", ""))
+                    case None => Logger.error("none11, alternative: " + alt); Future(("", ""))
                     case Some(js) =>
                       (js \ "reservationSecret").asOpt[String] match {
                         case Some(s) => Future((alt, s))
