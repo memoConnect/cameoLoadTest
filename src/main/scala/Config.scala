@@ -35,16 +35,18 @@ object Config {
   // Test Batch config
   // number of users that will be created
   var numberOfUsers = 5
-  var getContactsPerUser = 0
-  var getConversationsPerUser = 0
-  var getIdentityPerUser = 0
-  var getConversationPerMessage = 0
-  var tokenPerUser = 1
-  //var tokenPerUser = 10
-  //  var getContactsPerUser = 100
-  //  var getConversationsPerUser = 200
-  //  var getIdentityPerUser = 100
-  //  var getConversationPerMessage = 2
+
+  //  var getContactsPerUser = 0
+  //  var getConversationsPerUser = 0
+  //  var getIdentityPerUser = 0
+  //  var getConversationPerMessage = 0
+  //  var tokenPerUser = 1
+  var getContactsPerUser = 100
+  var getConversationsPerUser = 200
+  var getIdentityPerUser = 100
+  var getConversationPerMessage = 2
+  var tokenPerUser = 10
+
   var numberOfConversations = 5
   var numberOfMessagesPerConversation = 500
 
