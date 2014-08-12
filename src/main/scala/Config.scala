@@ -8,20 +8,20 @@ case class ExternalContact(displayName: String, email: Option[String], phoneNumb
 
 object Config {
 
-  var basePath = "https://dev.cameo.io/a/v1"
-  //  var basePath = "https://stage.cameo.io/a/v1"
-  //  var basePath = "https://cameonet.de/a/v1"
+  //var basePath = "https://dev.cameo.io/a/v1"
+//    var basePath = "https://stage.cameo.io/a/v1"
+    var basePath = "https://www.cameonet.de/a/v1"
 
   // number of successive test batches per thread, zero == infinite
   var testBatchRepetitions = 0
 
   // number of parallel threads
-  var concurrentTestBatches = 20
+  var concurrentTestBatches = 10
 
   // ramp up period until total number of concurrent batches is reached [seconds]
   var rampUpTime = 60
 
-  var defaultPassword = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
+  var defaultPassword = "XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg="
 
   var requestTimeout = 40000
 
@@ -29,26 +29,26 @@ object Config {
 
   var logInterval = 1000
 
-  var deleteCreatedUsers = false
+  var useTestUserNames = true
   var testUserPrefix = "testUser23"
 
   // Test Batch config
   // number of users that will be created
   var numberOfUsers = 5
 
-  //  var getContactsPerUser = 0
-  //  var getConversationsPerUser = 0
-  //  var getIdentityPerUser = 0
-  //  var getConversationPerMessage = 0
-  //  var tokenPerUser = 1
+//    var getContactsPerUser = 0
+//    var getConversationsPerUser = 0
+//    var getIdentityPerUser = 0
+//    var getConversationPerMessage = 0
+//    var tokenPerUser = 1
   var getContactsPerUser = 100
   var getConversationsPerUser = 200
   var getIdentityPerUser = 100
   var getConversationPerMessage = 2
   var tokenPerUser = 10
 
-  var numberOfConversations = 5
-  var numberOfMessagesPerConversation = 500
+  var numberOfConversations = 20
+  var numberOfMessagesPerConversation = 200
 
   var externalContacts: Seq[ExternalContact] = Seq(
     ExternalContact("Björn", Some("loadTest@bjrm.de"), None),

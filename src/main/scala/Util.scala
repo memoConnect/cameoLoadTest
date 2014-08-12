@@ -17,7 +17,7 @@ object Util {
 
   def generateLoginName(): String = {
 
-    val name = Config.deleteCreatedUsers match {
+    val name = Config.useTestUserNames match {
       case false =>
         // stolen from docker
         val left = Seq("happy", "jolly", "dreamy", "sad", "angry", "pensive", "focused", "sleepy", "grave", "distracted", "determined", "stoic", "stupefied", "sharp", "agitated", "cocky", "tender", "goofy", "furious", "desperate", "hopeful", "compassionate", "silly", "lonely", "condescending", "naughty", "kickass", "drunk", "boring", "nostalgic", "ecstatic", "insane", "cranky", "mad", "jovial", "sick", "hungry", "thirsty", "elegant", "backstabbing", "clever", "trusting", "loving", "suspicious", "berserk", "high", "romantic", "prickly", "evil")

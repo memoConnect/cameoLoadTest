@@ -1,4 +1,4 @@
-import akka.actor.{PoisonPill, ActorRef, Props, Actor}
+import akka.actor.{ PoisonPill, ActorRef, Props, Actor }
 
 /**
  * User: Björn Reimer
@@ -28,14 +28,14 @@ case class BatchFinished()
 class TestBatchActor extends Actor {
 
   val numberOfUsers = Config.numberOfUsers
-  
+
   var users: Seq[UserCreated] = Seq()
   var tokens: Seq[TokenCreated] = Seq()
   var friends = 0
   var finishedConversations = 0
   var startTime: Long = 0
   var endTime: Long = 0
-  var requestRouter : ActorRef = null
+  var requestRouter: ActorRef = null
   var repetitionCount = 0
   var repetitionsMax = 0
 
@@ -48,7 +48,7 @@ class TestBatchActor extends Actor {
       repetitionsMax = repetitions
       repetitionCount += 1
       users = Seq()
-      tokens =Seq()
+      tokens = Seq()
       friends = 0
       finishedConversations = 0
 
@@ -57,7 +57,7 @@ class TestBatchActor extends Actor {
       }
 
     case user: UserCreated =>
-//      Logger.info("User created: " + user.login)
+      Logger.info("User created: " + user.login)
       users :+= user
       requestRouter ! GetToken(Some(self), user)
 
@@ -84,10 +84,10 @@ class TestBatchActor extends Actor {
           requestRouter ! AddExternalContact(tokenCreated.token, ec.displayName, ec.email, ec.phoneNumber)
       }
 
-//      Logger.info("token created. Tokens: " + tokens + " #"+ numberOfUsers)
+      //      Logger.info("token created. Tokens: " + tokens + " #"+ numberOfUsers)
 
       if (tokens.length == numberOfUsers) {
-//        Logger.info("sending message to make everyone friends")
+        //        Logger.info("sending message to make everyone friends")
         self ! MakeEveryoneFriends()
       }
 
@@ -97,10 +97,10 @@ class TestBatchActor extends Actor {
       val getContactsActor = context.actorOf(Props[GetActor])
       getContactsActor ! StartGetting("/contacts", tokenCreated.token, Config.getContactsPerUser, requestRouter)
       val getConversationsActor = context.actorOf(Props[GetActor])
-      getConversationsActor ! StartGetting("/conversations", tokenCreated.token, Config.getConversationsPerUser, requestRouter)
+      getConversationsActor ! StartGetting("/conversations?limit=10&offset=0", tokenCreated.token, Config.getConversationsPerUser, requestRouter)
 
     case MakeEveryoneFriends() =>
-//      Logger.info("making everyone frieds!")
+      //      Logger.info("making everyone frieds!")
       // first user sends friend request to all others
       tokens.tail.map {
         token =>
@@ -108,7 +108,7 @@ class TestBatchActor extends Actor {
       }
 
     case FriendRequestSuccess(iid) =>
-//      Logger.info("friend request successfull")
+      //      Logger.info("friend request successfull")
       // accept friend request
       tokens.find(_.user.iid.equals(iid)).map {
         token =>
@@ -118,7 +118,7 @@ class TestBatchActor extends Actor {
     case FriendsAccepted() =>
       friends += 1
       if (friends == numberOfUsers - 1) {
-//                Logger.info("allFriends!")
+        //                Logger.info("allFriends!")
         self ! CreateConversations
       }
 
@@ -126,12 +126,12 @@ class TestBatchActor extends Actor {
       (1 to Config.numberOfConversations).foreach {
         i =>
           val cActor = context.actorOf(Props[ConversationActor])
-          cActor ! StartConversation(self, requestRouter,tokens, Config.numberOfMessagesPerConversation)
+          cActor ! StartConversation(self, requestRouter, tokens, Config.numberOfMessagesPerConversation)
       }
 
     case ConversationFinished() =>
       finishedConversations += 1
-//      Logger.info("conversation finished. Total: " + finishedConversations )
+      //      Logger.info("conversation finished. Total: " + finishedConversations )
 
       if (finishedConversations == Config.numberOfConversations) {
         endTime = System.currentTimeMillis()
@@ -148,33 +148,20 @@ class TestBatchActor extends Actor {
         case i if i < repetitionsMax =>
           self ! Start(0, requestRouter)
         case _ =>
-          // we are finished, end this actor
-          if(Config.deleteCreatedUsers) {
-              Util.loginNames.map {
-                name =>
-                  val id = name.split('_')(1)
-                  requestRouter ! DeleteTestUser(id)
-              }
-            }
           self ! PoisonPill
-          }
+      }
 
-
-
-
-//    case RequestStats(count, average, durations) =>
-//      val total = (endTime - startTime) / 1000
-//      //      val secs = total % 60
-//      //      val minutes = total / 60
-//      val msg = "Duration: " + total + " seconds, " + average + " Requests/second\n" +
-//        durations.map(_.toString).mkString("\n")
-//      Logger.info("Batch finished: " + msg)
-//      reply ! "ok"
-//      self ! PoisonPill
+    //    case RequestStats(count, average, durations) =>
+    //      val total = (endTime - startTime) / 1000
+    //      //      val secs = total % 60
+    //      //      val minutes = total / 60
+    //      val msg = "Duration: " + total + " seconds, " + average + " Requests/second\n" +
+    //        durations.map(_.toString).mkString("\n")
+    //      Logger.info("Batch finished: " + msg)
+    //      reply ! "ok"
+    //      self ! PoisonPill
 
   }
 
-
 }
-
 
